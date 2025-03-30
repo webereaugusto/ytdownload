@@ -16,12 +16,10 @@ additional_files = [
 ]
 
 # Converte a lista em formato adequado para o PyInstaller
-datas = []
+data_args = []
 for src, dst in additional_files:
     if os.path.exists(src):
-        datas.append((src, dst))
-
-datas_arg = ";".join([f"{src}{os.pathsep}{dst}" for src, dst in datas])
+        data_args.append(f"--add-data={src}{os.pathsep}{dst}")
 
 # Configura argumentos do PyInstaller
 args = [
@@ -30,10 +28,12 @@ args = [
     '--onefile',                           # Cria um único arquivo executável
     '--windowed',                          # Não mostra console ao executar
     '--icon=perfil.png',                   # Ícone do executável (usando a imagem de perfil)
-    f'--add-data={datas_arg}',             # Adiciona arquivos de dados
     '--clean',                             # Limpa arquivos temporários
     '--noconsole'                          # Não mostra console (aplicação GUI)
 ]
+
+# Adiciona os arquivos de dados
+args.extend(data_args)
 
 # Executa o PyInstaller
 PyInstaller.__main__.run(args)
