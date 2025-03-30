@@ -22,7 +22,7 @@ class YouTubeDownloader:
         ctk.set_default_color_theme("blue")
         
         # Frame principal com transparência
-        self.main_frame = ctk.CTkFrame(self.window, fg_color=("rgba(43, 43, 43, 0.7)"))
+        self.main_frame = ctk.CTkFrame(self.window, fg_color=("#2b2b2b", "#2b2b2b"))
         self.main_frame.pack(pady=20, padx=20, fill="both", expand=True)
         
         # Frame para o título e a foto de perfil
