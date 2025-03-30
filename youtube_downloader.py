@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
 import yt_dlp
 import os
 from threading import Thread
@@ -86,17 +86,19 @@ class YouTubeDownloader:
                 print("Imagem de fundo não encontrada:", image_path)
                 return
                 
-            # Carrega a imagem usando PIL
-            bg_image = Image.open(image_path)
-            
-            # Redimensiona a imagem para o tamanho da janela
-            bg_image = bg_image.resize((600, 400), Image.LANCZOS)
-            
-            # Converte para formato compatível com tkinter
-            self.bg_photo = ImageTk.PhotoImage(bg_image)
+            # Carrega a imagem usando CTkImage (próprio do CustomTkinter)
+            self.bg_image = ctk.CTkImage(
+                light_image=Image.open(image_path),
+                dark_image=Image.open(image_path),
+                size=(600, 400)
+            )
             
             # Cria um label para exibir a imagem
-            self.bg_label = ctk.CTkLabel(self.window, image=self.bg_photo, text="")
+            self.bg_label = ctk.CTkLabel(
+                self.window, 
+                image=self.bg_image, 
+                text=""
+            )
             self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
             
             # Envia o label para o fundo
