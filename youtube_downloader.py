@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from PIL import Image, ImageTk
 import yt_dlp
 import os
 from threading import Thread
@@ -13,12 +14,15 @@ class YouTubeDownloader:
         self.window.geometry("600x400")
         self.window.configure(fg_color="#2b2b2b")
         
+        # Carregar a imagem de fundo
+        self.load_background_image()
+        
         # Configuração do tema
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
         
-        # Frame principal
-        self.main_frame = ctk.CTkFrame(self.window)
+        # Frame principal com transparência
+        self.main_frame = ctk.CTkFrame(self.window, fg_color=("rgba(43, 43, 43, 0.7)"))
         self.main_frame.pack(pady=20, padx=20, fill="both", expand=True)
         
         # Título
@@ -30,7 +34,7 @@ class YouTubeDownloader:
         self.title_label.pack(pady=20)
         
         # Campo de URL
-        self.url_frame = ctk.CTkFrame(self.main_frame)
+        self.url_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.url_frame.pack(pady=10, padx=20, fill="x")
         
         self.url_label = ctk.CTkLabel(
@@ -70,6 +74,38 @@ class YouTubeDownloader:
         self.progress_bar = ctk.CTkProgressBar(self.main_frame)
         self.progress_bar.pack(pady=10, padx=20, fill="x")
         self.progress_bar.set(0)
+        
+    def load_background_image(self):
+        """Carrega a imagem de fundo e configura como plano de fundo da janela"""
+        try:
+            # Caminho para a imagem
+            image_path = os.path.join(os.getcwd(), "background.jpg")
+            
+            # Verifica se o arquivo existe
+            if not os.path.exists(image_path):
+                print("Imagem de fundo não encontrada:", image_path)
+                return
+                
+            # Carrega a imagem usando PIL
+            bg_image = Image.open(image_path)
+            
+            # Redimensiona a imagem para o tamanho da janela
+            bg_image = bg_image.resize((600, 400), Image.LANCZOS)
+            
+            # Converte para formato compatível com tkinter
+            self.bg_photo = ImageTk.PhotoImage(bg_image)
+            
+            # Cria um label para exibir a imagem
+            self.bg_label = ctk.CTkLabel(self.window, image=self.bg_photo, text="")
+            self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+            
+            # Envia o label para o fundo
+            self.bg_label.lower()
+            
+            print("Imagem de fundo carregada com sucesso!")
+            
+        except Exception as e:
+            print(f"Erro ao carregar imagem de fundo: {str(e)}")
         
     def update_status(self, message):
         self.status_label.configure(text=message)
