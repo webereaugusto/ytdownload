@@ -2,11 +2,21 @@ import customtkinter as ctk
 from PIL import Image
 import yt_dlp
 import os
+import sys
 from threading import Thread
 import re
 import subprocess
-import sys
 import random
+
+def resource_path(relative_path):
+    """Obtém o caminho absoluto de um recurso, funciona para desenvolvimento e para o executável"""
+    try:
+        # PyInstaller cria uma pasta temp e armazena o caminho em _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
 
 class YouTubeDownloader:
     def __init__(self):
@@ -86,8 +96,8 @@ class YouTubeDownloader:
     def load_background_image(self):
         """Carrega a imagem de fundo e configura como plano de fundo da janela"""
         try:
-            # Caminho para a imagem
-            image_path = os.path.join(os.getcwd(), "background.jpg")
+            # Caminho para a imagem (compatível com execução normal e executável)
+            image_path = resource_path("background.jpg")
             
             # Verifica se o arquivo existe
             if not os.path.exists(image_path):
@@ -120,8 +130,8 @@ class YouTubeDownloader:
     def load_profile_image(self):
         """Carrega a imagem de perfil circular"""
         try:
-            # Caminho para a imagem
-            image_path = os.path.join(os.getcwd(), "perfil.png")
+            # Caminho para a imagem (compatível com execução normal e executável)
+            image_path = resource_path("perfil.png")
             
             # Verifica se o arquivo existe
             if not os.path.exists(image_path):
@@ -196,8 +206,16 @@ class YouTubeDownloader:
                 
             self.update_status("Conectando ao YouTube...")
             
+            # Obtém o diretório do executável
+            if getattr(sys, 'frozen', False):
+                # Executando como executável
+                app_dir = os.path.dirname(sys.executable)
+            else:
+                # Executando como script
+                app_dir = os.getcwd()
+                
             # Configurações do yt-dlp
-            download_path = os.path.join(os.getcwd(), "Downloads")
+            download_path = os.path.join(app_dir, "Downloads")
             os.makedirs(download_path, exist_ok=True)
             
             # User agent aleatório
@@ -214,7 +232,7 @@ class YouTubeDownloader:
                 'ignoreerrors': True,  # Ignora erros
                 'no_warnings': False,  # Mostra avisos para debug
                 'quiet': False,  # Não silencia saída
-                'verbose': True,  # Mostra informações detalhadas
+                'verbose': False,  # Evita mostrar muitos logs no executável
                 # Opções para contornar restrições
                 'socket_timeout': 30,  # Timeout mais longo
                 'retries': 10,  # Mais tentativas
@@ -238,6 +256,7 @@ class YouTubeDownloader:
                 }
             }
             
+            print(f"Baixando para: {download_path}")
             print(f"Tentando baixar com User-Agent: {user_agent}")
             print(f"URL: {url}")
             
@@ -250,6 +269,10 @@ class YouTubeDownloader:
                         title = info.get('title', 'Video')
                         self.update_status(f"Download concluído: {title}")
                         self.progress_bar.set(1)
+                        
+                        # Abre a pasta de downloads
+                        if os.path.exists(download_path):
+                            os.startfile(download_path)
                     else:
                         self.update_status("Erro: Não foi possível obter informações do vídeo")
                 except Exception as e:
@@ -261,8 +284,6 @@ class YouTubeDownloader:
                         self.update_status("Erro: Problema ao acessar o vídeo. Tente novamente em alguns minutos.")
                     elif "HTTP Error 403" in error_msg:
                         self.update_status("Erro: Acesso negado. YouTube está bloqueando os downloads.")
-                        print("Tente atualizar o yt-dlp para a versão mais recente:")
-                        print("pip install -U yt-dlp")
                     else:
                         self.update_status(f"Erro: {error_msg}")
                     self.progress_bar.set(0)
@@ -281,5 +302,24 @@ class YouTubeDownloader:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    app = YouTubeDownloader()
-    app.run() 
+    try:
+        app = YouTubeDownloader()
+        app.run()
+    except Exception as e:
+        # Em caso de erro fatal, mostra uma mensagem de erro antes de fechar
+        import traceback
+        import tkinter as tk
+        from tkinter import messagebox
+        
+        error_msg = f"Ocorreu um erro inesperado:\n\n{str(e)}\n\n{traceback.format_exc()}"
+        
+        root = tk.Tk()
+        root.withdraw()  # Esconde a janela principal
+        messagebox.showerror("Erro no YouTube Downloader", error_msg)
+        
+        # Registra o erro em um arquivo de log
+        with open("error_log.txt", "w") as f:
+            f.write(error_msg)
+        
+        root.destroy()
+        sys.exit(1) 

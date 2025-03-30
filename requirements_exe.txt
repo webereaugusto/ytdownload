@@ -1,0 +1,4 @@
+pyinstaller==6.5.0
+yt-dlp==2025.3.27
+customtkinter==5.2.1
+pillow==10.2.0 
