@@ -6,6 +6,7 @@ from threading import Thread
 import re
 import subprocess
 import sys
+import random
 
 class YouTubeDownloader:
     def __init__(self):
@@ -146,6 +147,17 @@ class YouTubeDownloader:
             
         except Exception as e:
             print(f"Erro ao carregar imagem de perfil: {str(e)}")
+    
+    def get_random_user_agent(self):
+        """Retorna um User-Agent aleatório"""
+        user_agents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/122.0.0.0 Safari/537.36'
+        ]
+        return random.choice(user_agents)
         
     def update_status(self, message):
         self.status_label.configure(text=message)
@@ -188,14 +200,46 @@ class YouTubeDownloader:
             download_path = os.path.join(os.getcwd(), "Downloads")
             os.makedirs(download_path, exist_ok=True)
             
-            # Configurações MUITO SIMPLES que devem funcionar para todos os vídeos
+            # User agent aleatório
+            user_agent = self.get_random_user_agent()
+            
+            # Configurações avançadas para contornar restrições
             ydl_opts = {
-                # Usando o formato mais básico e compatível possível
-                'format': 'best[ext=mp4]/best',  # Tenta o melhor formato mp4, ou qualquer formato se mp4 não estiver disponível
+                'format': 'best[ext=mp4]/best',
                 'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),
                 'progress_hooks': [self.progress_hook],
-                'noplaylist': True
+                'noplaylist': True,
+                'cookiefile': None,  # Sem cookies salvos
+                'nocheckcertificate': True,  # Não verifica certificados SSL
+                'ignoreerrors': True,  # Ignora erros
+                'no_warnings': False,  # Mostra avisos para debug
+                'quiet': False,  # Não silencia saída
+                'verbose': True,  # Mostra informações detalhadas
+                # Opções para contornar restrições
+                'socket_timeout': 30,  # Timeout mais longo
+                'retries': 10,  # Mais tentativas
+                'fragment_retries': 10,  # Mais tentativas para fragmentos
+                'skip_download': False,
+                'geo_bypass': True,  # Tenta contornar restrições geográficas
+                'geo_bypass_country': 'BR',  # País para bypass
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web'],  # Tenta simular cliente Android e Web
+                        'player_skip': ['js', 'configs', 'webpage']  # Pula verificações problemáticas
+                    }
+                },
+                'http_headers': {
+                    'User-Agent': user_agent,
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Origin': 'https://www.youtube.com',
+                    'Referer': 'https://www.youtube.com/'
+                }
             }
+            
+            print(f"Tentando baixar com User-Agent: {user_agent}")
+            print(f"URL: {url}")
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 try:
@@ -216,7 +260,9 @@ class YouTubeDownloader:
                     elif "HTTP Error 400" in error_msg:
                         self.update_status("Erro: Problema ao acessar o vídeo. Tente novamente em alguns minutos.")
                     elif "HTTP Error 403" in error_msg:
-                        self.update_status("Erro: Acesso negado. Tente novamente mais tarde")
+                        self.update_status("Erro: Acesso negado. YouTube está bloqueando os downloads.")
+                        print("Tente atualizar o yt-dlp para a versão mais recente:")
+                        print("pip install -U yt-dlp")
                     else:
                         self.update_status(f"Erro: {error_msg}")
                     self.progress_bar.set(0)
