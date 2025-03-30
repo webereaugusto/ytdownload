@@ -1,0 +1,22 @@
+# Pasta de downloads
+Downloads/
+
+# Arquivos de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambiente virtual
+venv/
+env/
+.env/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de configuração de IDE
+.idea/
+.vscode/
+*.swp
+*.swo 
