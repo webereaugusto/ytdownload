@@ -25,13 +25,20 @@ class YouTubeDownloader:
         self.main_frame = ctk.CTkFrame(self.window, fg_color=("rgba(43, 43, 43, 0.7)"))
         self.main_frame.pack(pady=20, padx=20, fill="both", expand=True)
         
+        # Frame para o título e a foto de perfil
+        self.title_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.title_frame.pack(pady=20, fill="x")
+        
+        # Carrega a imagem do perfil
+        self.load_profile_image()
+        
         # Título
         self.title_label = ctk.CTkLabel(
-            self.main_frame,
+            self.title_frame,
             text="YouTube Downloader",
             font=("Helvetica", 24, "bold")
         )
-        self.title_label.pack(pady=20)
+        self.title_label.pack(side="left", padx=10)
         
         # Campo de URL
         self.url_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
@@ -108,6 +115,37 @@ class YouTubeDownloader:
             
         except Exception as e:
             print(f"Erro ao carregar imagem de fundo: {str(e)}")
+    
+    def load_profile_image(self):
+        """Carrega a imagem de perfil circular"""
+        try:
+            # Caminho para a imagem
+            image_path = os.path.join(os.getcwd(), "perfil.png")
+            
+            # Verifica se o arquivo existe
+            if not os.path.exists(image_path):
+                print("Imagem de perfil não encontrada:", image_path)
+                return
+                
+            # Carrega a imagem usando CTkImage (próprio do CustomTkinter)
+            self.profile_image = ctk.CTkImage(
+                light_image=Image.open(image_path),
+                dark_image=Image.open(image_path),
+                size=(50, 50)  # Tamanho da foto de perfil
+            )
+            
+            # Cria um label para exibir a imagem
+            self.profile_label = ctk.CTkLabel(
+                self.title_frame, 
+                image=self.profile_image, 
+                text=""
+            )
+            self.profile_label.pack(side="right", padx=20)
+            
+            print("Imagem de perfil carregada com sucesso!")
+            
+        except Exception as e:
+            print(f"Erro ao carregar imagem de perfil: {str(e)}")
         
     def update_status(self, message):
         self.status_label.configure(text=message)
